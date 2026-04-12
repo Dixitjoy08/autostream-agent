@@ -383,3 +383,12 @@ For questions about this project, refer to the code comments or the architecture
 
 **Built for ServiceHive ML Internship Assignment** ✨
 
+## 📹 Demo Video
+
+[Watch 3-minute demo on YouTube](https://youtu.be/rS5MFo5HvTw)
+
+**In the demo:**
+- ✅ Pricing inquiry answered from knowledge base
+- ✅ High-intent detection
+- ✅ Automatic lead information collection
+- ✅ Lead capture execution
