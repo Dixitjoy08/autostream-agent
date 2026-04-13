@@ -22,10 +22,16 @@ load_dotenv()
 # STEP 1: Initialize LLM
 # ============================================================================
 
+api_key = os.getenv("GOOGLE_API_KEY")
+print(f"API Key loaded: {bool(api_key)}")  # Debug line
+if not api_key:
+    print("ERROR: GOOGLE_API_KEY not found in .env")
+    exit(1)
+
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     temperature=0.7,
-    google_api_key=os.getenv("GOOGLE_API_KEY")
+    api_key=api_key
 )
 
 # Load knowledge base once
@@ -202,8 +208,7 @@ def run_agent(user_input: str, state: AgentState) -> Tuple[AgentState, str]:
         # Get relevant knowledge from KB
         kb_context = get_relevant_knowledge(user_input, kb)
         
-        print(f"\n[KB CONTEXT RETRIEVED]:")
-        print(kb_context)
+       
         
         # BUILD THE COMPLETE SYSTEM PROMPT WITH KB
         system_prompt = f"""{SYSTEM_PROMPT}
