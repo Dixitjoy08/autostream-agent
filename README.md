@@ -1,4 +1,4 @@
-# AutoStream AI Agent - Social-to-Lead Workflow
+# AutoStream AI Agent - Social-to-Lead Conversational AI
 
 An AI-powered conversational agent that converts social media interactions into qualified business leads for **AutoStream**, an automated video editing platform.
 
