@@ -91,7 +91,7 @@ async def chat(req: ChatRequest):
         raise HTTPException(status_code=400, detail="Message cannot be empty.")
 
     # Get or create session
-    session_id = req.session_id if req.session_id in sessions else str(uuid.uuid4())
+    session_id = req.session_id if req.session_id else str(uuid.uuid4())
     state = sessions.get(session_id, AgentState())
 
     # Run one agent turn

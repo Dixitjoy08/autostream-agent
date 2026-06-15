@@ -12,10 +12,11 @@ load_dotenv()
 
 def capture_lead(name: str, email: str, platform: str, plan: str = "Not specified") -> str:
     """
-    Capture lead and save to Salesforce CRM via OAuth2 (Connected App).
+    Capture lead and save to Salesforce CRM via Web-to-Lead or OAuth2.
     Falls back to console logging if credentials are not configured.
     """
 
+    sf_org_id         = os.getenv("SF_ORG_ID")
     sf_username       = os.getenv("SF_USERNAME")
     sf_password       = os.getenv("SF_PASSWORD")
     sf_security_token = os.getenv("SF_SECURITY_TOKEN", "")   # may be empty for OAuth2 orgs
@@ -32,6 +33,48 @@ def capture_lead(name: str, email: str, platform: str, plan: str = "Not specifie
     print(f"Platform: {platform}")
     print(f"Plan:     {plan}")
     print("=" * 70)
+
+    # ── Salesforce CRM via Web-to-Lead (HTTP POST) ───────────────────────────
+    if sf_org_id:
+        try:
+            import requests
+
+            # Split name into first / last
+            name_parts = name.strip().split(" ", 1)
+            first_name = name_parts[0]
+            last_name  = name_parts[1] if len(name_parts) > 1 else "Unknown"
+
+            payload = {
+                "oid": sf_org_id,
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email,
+                "company": f"Content Creator ({platform})",
+                "lead_source": "AutoStream Chatbot",
+                "description": (
+                    f"Platform: {platform}\n"
+                    f"Interested Plan: {plan}\n"
+                    f"Source: AutoStream AI Chat Agent"
+                ),
+            }
+
+            url = "https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8"
+            headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+            resp = requests.post(url, data=payload, headers=headers, timeout=10)
+
+            if resp.status_code in (200, 302):
+                print(f"✅ Salesforce Web-to-Lead submitted successfully for {name}!")
+                return (
+                    f"Lead captured and saved to Salesforce CRM (Web-to-Lead) ✅ — "
+                    f"{name} ({email}), Platform: {platform}, Plan: {plan}"
+                )
+            else:
+                print(f"⚠️  Salesforce Web-to-Lead returned status {resp.status_code}")
+                # Fall through to standard APIs if they are configured
+        except Exception as e:
+            print(f"⚠️  Salesforce Web-to-Lead error: {e}")
+            # Fall through to standard APIs
 
     # ── Salesforce CRM via OAuth2 ─────────────────────────────────────────────
     if sf_username and sf_password and sf_consumer_key and sf_consumer_secret:

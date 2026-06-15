@@ -137,27 +137,51 @@ def extract_lead_info(user_msg: str, state: AgentState) -> dict:
         
         # Pattern 1: "my name is John"
         if "my name is" in lower_msg:
-            parts = user_msg.split("my name is")
-            if len(parts) > 1:
-                name_part = parts[1].strip().split()[0].strip(",.!?;:()")
-                if len(name_part) > 1:
-                    updates["user_name"] = name_part
+            idx = lower_msg.find("my name is")
+            rest = user_msg[idx + len("my name is"):].strip()
+            rest = re.split(r'[,.!?\n]', rest)[0].strip()
+            words = rest.split()
+            if len(words) >= 2 and words[1].lower() not in ["and", "is", "want", "to", "the"]:
+                name_part = f"{words[0]} {words[1]}"
+            elif len(words) >= 1:
+                name_part = words[0]
+            else:
+                name_part = ""
+            name_part = name_part.strip(",.!?;:()")
+            if len(name_part) > 1:
+                updates["user_name"] = name_part
         
         # Pattern 2: "I'm John"
         elif "i'm " in lower_msg:
-            parts = user_msg.split("i'm ")
-            if len(parts) > 1:
-                name_part = parts[1].split()[0].strip(",.!?;:()")
-                if len(name_part) > 1:
-                    updates["user_name"] = name_part
+            idx = lower_msg.find("i'm ")
+            rest = user_msg[idx + len("i'm "):].strip()
+            rest = re.split(r'[,.!?\n]', rest)[0].strip()
+            words = rest.split()
+            if len(words) >= 2 and words[1].lower() not in ["and", "is", "want", "to", "the"]:
+                name_part = f"{words[0]} {words[1]}"
+            elif len(words) >= 1:
+                name_part = words[0]
+            else:
+                name_part = ""
+            name_part = name_part.strip(",.!?;:()")
+            if len(name_part) > 1:
+                updates["user_name"] = name_part
         
         # Pattern 3: "call me John"
         elif "call me" in lower_msg:
-            parts = user_msg.split("call me")
-            if len(parts) > 1:
-                name_part = parts[1].strip().split()[0].strip(",.!?;:()")
-                if len(name_part) > 1:
-                    updates["user_name"] = name_part
+            idx = lower_msg.find("call me")
+            rest = user_msg[idx + len("call me"):].strip()
+            rest = re.split(r'[,.!?\n]', rest)[0].strip()
+            words = rest.split()
+            if len(words) >= 2 and words[1].lower() not in ["and", "is", "want", "to", "the"]:
+                name_part = f"{words[0]} {words[1]}"
+            elif len(words) >= 1:
+                name_part = words[0]
+            else:
+                name_part = ""
+            name_part = name_part.strip(",.!?;:()")
+            if len(name_part) > 1:
+                updates["user_name"] = name_part
     
     # Extract platform
     if not state.user_platform:
