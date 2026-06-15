@@ -34,48 +34,6 @@ def capture_lead(name: str, email: str, platform: str, plan: str = "Not specifie
     print(f"Plan:     {plan}")
     print("=" * 70)
 
-    # ── Salesforce CRM via Web-to-Lead (HTTP POST) ───────────────────────────
-    if sf_org_id:
-        try:
-            import requests
-
-            # Split name into first / last
-            name_parts = name.strip().split(" ", 1)
-            first_name = name_parts[0]
-            last_name  = name_parts[1] if len(name_parts) > 1 else "Unknown"
-
-            payload = {
-                "oid": sf_org_id,
-                "first_name": first_name,
-                "last_name": last_name,
-                "email": email,
-                "company": f"Content Creator ({platform})",
-                "lead_source": "AutoStream Chatbot",
-                "description": (
-                    f"Platform: {platform}\n"
-                    f"Interested Plan: {plan}\n"
-                    f"Source: AutoStream AI Chat Agent"
-                ),
-            }
-
-            url = "https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8"
-            headers = {"Content-Type": "application/x-www-form-urlencoded"}
-
-            resp = requests.post(url, data=payload, headers=headers, timeout=10)
-
-            if resp.status_code in (200, 302):
-                print(f"✅ Salesforce Web-to-Lead submitted successfully for {name}!")
-                return (
-                    f"Lead captured and saved to Salesforce CRM (Web-to-Lead) ✅ — "
-                    f"{name} ({email}), Platform: {platform}, Plan: {plan}"
-                )
-            else:
-                print(f"⚠️  Salesforce Web-to-Lead returned status {resp.status_code}")
-                # Fall through to standard APIs if they are configured
-        except Exception as e:
-            print(f"⚠️  Salesforce Web-to-Lead error: {e}")
-            # Fall through to standard APIs
-
     # ── Salesforce CRM via OAuth2 ─────────────────────────────────────────────
     if sf_username and sf_password and sf_consumer_key and sf_consumer_secret:
         try:
@@ -121,17 +79,11 @@ def capture_lead(name: str, email: str, platform: str, plan: str = "Not specifie
             else:
                 errors = result.get("errors", [])
                 print(f"⚠️  Salesforce returned errors: {errors}")
-                return f"Lead logged locally, Salesforce error: {errors}"
-
-        except ImportError:
-            print("⚠️  simple-salesforce not installed.")
-            return f"Lead captured locally (SDK missing): {name} ({email})"
-
         except Exception as e:  # noqa: BLE001
-            print(f"⚠️  Salesforce error: {e}")
-            return f"Lead captured locally, Salesforce error: {str(e)}"
+            print(f"⚠️  Salesforce OAuth2 error: {e}")
 
-    elif sf_username and sf_password and sf_security_token:
+    # ── Salesforce CRM via SOAP ───────────────────────────────────────────────
+    if sf_username and sf_password and sf_security_token:
         # Fallback: try legacy SOAP login (works on standard orgs)
         try:
             from simple_salesforce import Salesforce
@@ -154,18 +106,58 @@ def capture_lead(name: str, email: str, platform: str, plan: str = "Not specifie
             if result.get("success"):
                 print(f"✅ Salesforce Lead created (SOAP)! ID: {result.get('id')}")
                 return f"Lead saved to Salesforce ✅ — {name} ({email})"
-            return f"Salesforce error: {result.get('errors')}"
-
+            else:
+                print(f"⚠️  Salesforce SOAP returned errors: {result.get('errors')}")
         except Exception as e:
             print(f"⚠️  Salesforce SOAP error: {e}")
-            return f"Lead captured locally, Salesforce error: {str(e)}"
 
-    else:
-        print("ℹ️  Salesforce credentials not configured — saved locally only.")
-        return (
-            f"Lead captured (local only): {name} ({email}) — "
-            f"Platform: {platform}, Plan: {plan}"
-        )
+    # ── Salesforce CRM via Web-to-Lead (HTTP POST) ───────────────────────────
+    if sf_org_id:
+        try:
+            import requests
+
+            # Split name into first / last
+            name_parts = name.strip().split(" ", 1)
+            first_name = name_parts[0]
+            last_name  = name_parts[1] if len(name_parts) > 1 else "Unknown"
+
+            payload = {
+                "oid": sf_org_id,
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email,
+                "company": f"Content Creator ({platform})",
+                "lead_source": "AutoStream Chatbot",
+                "description": (
+                    f"Platform: {platform}\n"
+                    f"Interested Plan: {plan}\n"
+                    f"Source: AutoStream AI Chat Agent"
+                ),
+            }
+
+            url = "https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8"
+            headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+            resp = requests.post(url, data=payload, headers=headers, timeout=10)
+
+            if resp.status_code in (200, 302):
+                print(f"✅ Salesforce Web-to-Lead submitted successfully for {name}!")
+                return (
+                    f"Lead captured and saved to Salesforce CRM (Web-to-Lead) ✅ — "
+                    f"{name} ({email}), Platform: {platform}, Plan: {plan}"
+                )
+            else:
+                print(f"⚠️  Salesforce Web-to-Lead returned status {resp.status_code}")
+        except Exception as e:
+            print(f"⚠️  Salesforce Web-to-Lead error: {e}")
+
+    # Fallback: console log and local only
+    print("ℹ️  Salesforce credentials not configured or failed — saved locally only.")
+    return (
+        f"Lead captured (local only): {name} ({email}) — "
+        f"Platform: {platform}, Plan: {plan}"
+    )
+
 
 
 # ── Validation helpers ────────────────────────────────────────────────────────
