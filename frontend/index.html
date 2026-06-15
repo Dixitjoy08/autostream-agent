@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoStream AI — Your Smart Video Assistant</title>
+  <meta name="description" content="Chat with AutoStream's AI agent to learn about pricing, features, and get started with automated video editing for content creators." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- ── Background particles ─────────────────────────────────────── -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <!-- ── App shell ────────────────────────────────────────────────── -->
+  <div class="app">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <path d="M4 14L14 4L24 14L14 24L4 14Z" fill="url(#grad1)" />
+            <path d="M10 14L14 10L18 14L14 18L10 14Z" fill="white" opacity="0.9"/>
+            <defs>
+              <linearGradient id="grad1" x1="4" y1="4" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#a78bfa"/>
+                <stop offset="1" stop-color="#06b6d4"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-name">AutoStream</h1>
+          <p class="brand-tagline">AI Sales Agent</p>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button id="btn-new-chat" class="nav-btn active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          New Conversation
+        </button>
+      </nav>
+
+      <div class="sidebar-section">
+        <p class="sidebar-label">Plans</p>
+        <div class="plan-card plan-basic">
+          <p class="plan-name">Basic</p>
+          <p class="plan-price">$29<span>/mo</span></p>
+          <p class="plan-desc">10 videos · 720p · Email support</p>
+        </div>
+        <div class="plan-card plan-pro">
+          <div class="plan-badge">Popular</div>
+          <p class="plan-name">Pro</p>
+          <p class="plan-price">$79<span>/mo</span></p>
+          <p class="plan-desc">Unlimited · 4K · AI Captions · 24/7 support</p>
+        </div>
+      </div>
+
+      <!-- Lead status panel (hidden until capture) -->
+      <div class="lead-panel" id="lead-panel" aria-live="polite">
+        <div class="lead-panel-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Lead Captured
+        </div>
+        <div class="lead-field"><span class="lead-key">Name</span><span id="lead-name" class="lead-val">—</span></div>
+        <div class="lead-field"><span class="lead-key">Email</span><span id="lead-email" class="lead-val">—</span></div>
+        <div class="lead-field"><span class="lead-key">Platform</span><span id="lead-platform" class="lead-val">—</span></div>
+        <div class="lead-field"><span class="lead-key">Plan</span><span id="lead-plan" class="lead-val">—</span></div>
+        <div id="lead-sf-badge" class="sf-badge hidden">✅ Saved to Salesforce</div>
+      </div>
+
+      <div class="sidebar-footer">
+        <p>Powered by Gemini 2.5 Flash</p>
+        <p>© 2025 AutoStream Inc.</p>
+      </div>
+    </aside>
+
+    <!-- Main chat area -->
+    <main class="chat-area">
+
+      <!-- Header -->
+      <header class="chat-header">
+        <div class="chat-header-left">
+          <div class="agent-avatar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          </div>
+          <div>
+            <p class="agent-name">AutoStream Assistant</p>
+            <p class="agent-status"><span class="status-dot"></span>Online · Ready to help</p>
+          </div>
+        </div>
+        <div class="chat-header-right">
+          <span class="header-tag">14-day free trial</span>
+        </div>
+      </header>
+
+      <!-- Message feed -->
+      <div class="message-feed" id="message-feed" role="log" aria-live="polite">
+        <!-- Welcome card -->
+        <div class="welcome-card">
+          <div class="welcome-icon">🎬</div>
+          <h2>Welcome to AutoStream</h2>
+          <p>I'm your AI assistant. Ask me about pricing, features, or get started with a free trial!</p>
+          <div class="quick-chips">
+            <button class="chip" data-msg="What are your pricing plans?">💰 Pricing</button>
+            <button class="chip" data-msg="What features do you offer?">✨ Features</button>
+            <button class="chip" data-msg="I want to try the Pro plan">🚀 Get Started</button>
+            <button class="chip" data-msg="Do you offer a free trial?">🎁 Free Trial</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input bar -->
+      <div class="input-area">
+        <div class="input-wrapper">
+          <textarea
+            id="user-input"
+            class="chat-input"
+            placeholder="Ask about pricing, features, or get started…"
+            rows="1"
+            maxlength="1000"
+            aria-label="Chat message input"
+          ></textarea>
+          <button id="send-btn" class="send-btn" aria-label="Send message" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+          </button>
+        </div>
+        <p class="input-hint">AutoStream AI · Responses may take 2-3 seconds</p>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Confetti burst (shown when lead is captured) -->
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+  <script src="/static/chat.js"></script>
+</body>
+</html>

@@ -1,6 +1,17 @@
+# Core LLM
 langchain>=0.1.0
 langgraph>=0.0.0
 langchain-google-genai>=0.0.1
+google-generativeai>=0.3.0
+
+# Web API
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+
+# Salesforce CRM
+simple-salesforce>=1.12.5
+
+# Utilities
 python-dotenv>=1.0.0
 pydantic>=2.0.0
-google-generativeai>=0.3.0

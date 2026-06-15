@@ -5,6 +5,7 @@ Handles conversation flow, intent detection, lead collection, and tool execution
 
 import json
 import os
+import re
 from typing import Optional, List, Tuple
 from dotenv import load_dotenv
 
@@ -13,7 +14,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 
 from src.config import SYSTEM_PROMPT
 from src.utils import load_knowledge_base, get_relevant_knowledge
-from src.tools import mock_lead_capture
+from src.tools import capture_lead
 
 # Load environment variables
 load_dotenv()
@@ -55,6 +56,7 @@ class AgentState:
         self.user_name = None
         self.user_email = None
         self.user_platform = None
+        self.user_plan = None  # Track which plan they are interested in
         self.lead_captured = False
     
     def add_message(self, role: str, content: str):
@@ -85,6 +87,7 @@ class AgentState:
             "user_name": self.user_name,
             "user_email": self.user_email,
             "user_platform": self.user_platform,
+            "user_plan": self.user_plan,
             "lead_captured": self.lead_captured
         }
 
@@ -94,21 +97,22 @@ class AgentState:
 # ============================================================================
 
 def detect_intent(user_msg: str) -> str:
-    """Detect if user is greeting, asking, or showing buying intent"""
-    
     user_lower = user_msg.lower()
     
-    # Check for high-intent signals
-    high_intent_keywords = ["want to", "ready to", "sign up", "interested in", "buy", "purchase", "get started", "try", "start", "begin"]
+    # High intent check (keep as is - working perfectly)
+    high_intent_keywords = ["want to", "ready to", "sign up", "interested in", 
+                            "buy", "purchase", "get started", "try", "start", "begin"]
     if any(keyword in user_lower for keyword in high_intent_keywords):
         return "HIGH_INTENT"
     
-    # Check for greeting
-    greeting_keywords = ["hi", "hello", "hey", "what's up", "sup", "greetings"]
-    if any(keyword in user_lower for keyword in greeting_keywords):
+    # Fixed greeting check — whole words only
+    greeting_keywords = ["hi", "hello", "hey", "sup", "greetings"]
+    if any(re.search(rf'\b{keyword}\b', user_lower) for keyword in greeting_keywords):
+        return "GREETING"
+    # Handle "what's up" separately
+    if "what's up" in user_lower:
         return "GREETING"
     
-    # Default to inquiry
     return "INQUIRY"
 
 
@@ -162,7 +166,15 @@ def extract_lead_info(user_msg: str, state: AgentState) -> dict:
             if platform.lower() in user_msg.lower():
                 updates["user_platform"] = platform
                 break
-    
+
+    # Extract plan interest (Basic or Pro)
+    if not state.user_plan:
+        lower_msg = user_msg.lower()
+        if any(kw in lower_msg for kw in ["pro plan", "pro", "79", "unlimited", "4k"]):
+            updates["user_plan"] = "Pro Plan"
+        elif any(kw in lower_msg for kw in ["basic plan", "basic", "29", "starter"]):
+            updates["user_plan"] = "Basic Plan"
+
     return updates
 
 
@@ -204,6 +216,10 @@ def run_agent(user_input: str, state: AgentState) -> Tuple[AgentState, str]:
         if "user_platform" in lead_info:
             state.user_platform = lead_info["user_platform"]
             print(f"[PLATFORM EXTRACTED: {state.user_platform}]")
+
+        if "user_plan" in lead_info:
+            state.user_plan = lead_info["user_plan"]
+            print(f"[PLAN EXTRACTED: {state.user_plan}]")
         
         # Get relevant knowledge from KB
         kb_context = get_relevant_knowledge(user_input, kb)
@@ -271,9 +287,15 @@ Now respond to the user. Remember to use the knowledge base!"""
             print(f"  Name: {state.user_name}")
             print(f"  Email: {state.user_email}")
             print(f"  Platform: {state.user_platform}")
+            print(f"  Plan: {state.user_plan or 'Not specified'}")
             
-            # Call the lead capture tool
-            result = mock_lead_capture(state.user_name, state.user_email, state.user_platform)
+            # Call the lead capture tool (real Salesforce)
+            result = capture_lead(
+                name=state.user_name,
+                email=state.user_email,
+                platform=state.user_platform,
+                plan=state.user_plan or "Not specified"
+            )
             print(f"[CAPTURE RESULT] {result}")
             
             state.lead_captured = True
