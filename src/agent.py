@@ -139,6 +139,7 @@ def extract_lead_info(user_msg: str, state: AgentState) -> dict:
         if "my name is" in lower_msg:
             idx = lower_msg.find("my name is")
             rest = user_msg[idx + len("my name is"):].strip()
+            rest = rest.lstrip(",.!?;:() ")
             rest = re.split(r'[,.!?\n]', rest)[0].strip()
             words = rest.split()
             if len(words) >= 2 and words[1].lower() not in ["and", "is", "want", "to", "the"]:
@@ -155,6 +156,7 @@ def extract_lead_info(user_msg: str, state: AgentState) -> dict:
         elif "i'm " in lower_msg:
             idx = lower_msg.find("i'm ")
             rest = user_msg[idx + len("i'm "):].strip()
+            rest = rest.lstrip(",.!?;:() ")
             rest = re.split(r'[,.!?\n]', rest)[0].strip()
             words = rest.split()
             if len(words) >= 2 and words[1].lower() not in ["and", "is", "want", "to", "the"]:
@@ -171,6 +173,7 @@ def extract_lead_info(user_msg: str, state: AgentState) -> dict:
         elif "call me" in lower_msg:
             idx = lower_msg.find("call me")
             rest = user_msg[idx + len("call me"):].strip()
+            rest = rest.lstrip(",.!?;:() ")
             rest = re.split(r'[,.!?\n]', rest)[0].strip()
             words = rest.split()
             if len(words) >= 2 and words[1].lower() not in ["and", "is", "want", "to", "the"]:
@@ -322,7 +325,9 @@ Now respond to the user. Remember to use the knowledge base!"""
             )
             print(f"[CAPTURE RESULT] {result}")
             
-            state.lead_captured = True
+            # Only set lead_captured to True if it was successfully saved to Salesforce
+            if "local only" not in result.lower() and "credentials not configured" not in result.lower():
+                state.lead_captured = True
         
         return state, agent_response
         
